@@ -1,0 +1,44 @@
+#!echo "Het installatie script van Nextcloud wordt uigevoerd!"
+a=0
+echo "Welke webserver wil je?
+- Apache
+- Nginx
+- Lighttp"
+
+
+while [ $a = 0 ]
+do
+
+read webserver
+
+if [ $webserver = "Nginx" ]
+then
+zypper install nginx
+
+elif [ $webserver = "Apache" ]
+then
+zypper install apache2
+
+elif [ $webserver = "Lighttp" ]
+then
+zypper install lighttp
+
+else
+echo "Geen webserver is geïnstalleerd..."
+
+fi
+echo "Wil je phpmodules installeren?"
+read phpmodules
+
+if [ $phpmodules = "Ja" ]
+then
+zypper install php7-ctype php7-curl
+fi
+
+echo "Wil je het script opnieuw laden?"
+
+sed '/home/Desktop/Script.sh'
+
+read a
+
+done
