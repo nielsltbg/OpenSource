@@ -1,3 +1,4 @@
+Heel moooi
 #!echo "Het installatie script van Nextcloud wordt uigevoerd!"
 a=0
 echo "Welke webserver wil je?
