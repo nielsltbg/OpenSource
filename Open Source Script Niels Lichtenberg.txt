@@ -1,44 +1,103 @@
-#!echo "Het installatie script van Nextcloud wordt uigevoerd!"
-a=0
-echo "Welke webserver wil je?
+#!/bin/bash
+echo "Welke webserver wil je gebruiken?
 - Apache
 - Nginx
-- Lighttp"
+- Zope"
 
-
-while [ $a = 0 ]
-do
-
-read webserver
-
-if [ $webserver = "Nginx" ]
+if [ "$input" == "Apache" ];
 then
-zypper install nginx
+echo "begint met de installatie van het script"
 
-elif [ $webserver = "Apache" ]
+echo "Apache2 en de benodigdeheden gedownload"
+
+sudo apt-get install apache2 apache2-doc libexpat1 ssl-cert
+
+echo "Nu wordt MySql client en de benodigdgheden gedownload"
+
+sudo apt-get install mysql-server mysql-client
+
+echo "Nu wordt PhP en de benodigdheden gedownload"
+
+sudo apt-get install php php-common libapache2-mod-php php-curl php-gd php-gettext php-imagick php-intl php-mbstring php-mysql php-pear php-pspell php-recode php-xml php-zip
+
+echo "Status van  Apache2 service wordt gecontroleerd"
+
+sudo service apache2 restart
+fi;
+
+echo "Nextclud installeren?" ja/nee
+read input
+if [ "$input" == "nee" ];
 then
-zypper install apache2
+echo "Sluit de console";
+fi;
 
-elif [ $webserver = "Lighttp" ]
+if [ "$input" == "ja" ];
 then
-zypper install lighttp
+echo "Nextcloud wordt geinstalleerd"
 
-else
-echo "Geen webserver is geïnstalleerd..."
+sudo cd /tmp
 
-fi
-echo "Wil je phpmodules installeren?"
-read phpmodules
+sudo wget https://download.nextcloud.com/server/release/nextcloud-16.0.1.zip
 
-if [ $phpmodules = "Ja" ]
+sudo unzip nextcloud-16.0.1.zip
+
+sudo chown -R www-data:www-data nextcloud
+fi;
+
+echo "Wil je Fail2Ban installeren?" ja/nee
+read input
+if [ "$input" == "nee" ];
+then echo "Sluit de console"
+fi;
+
+if [ "$input" == "ja" ];
 then
-zypper install php7-ctype php7-curl
-fi
+echo "Fail2Ban wordt nu geinstalleerd"
 
-echo "Wil je het script opnieuw laden?"
+sudo apt-get install fail2ban
 
-sed '/home/Desktop/Script.sh'
+echo "fail2ban configuren? "
+if [ "$input" == "nee"]
+then 
 
-read a
+if [ "$input" == "ja"]
+then
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban 
+sudo systemctl status fail2ban.service
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+sudo nano /etc/fail2ban/jail.local
+fi;
 
-done
+echo "Wil je CertBot intalleren" ja/nee
+read input
+if [ "$input" == "nee" ];
+then echo "Sluit de console"
+fi;
+
+if [ "$input" == "ja" ];
+then
+sudo snap install --classic certbot
+sudo sudo ln -s /snap/bin/certbot /usr/bin/certbot
+sudo certbot certonly --apache
+sudo certbot renew --dry-run
+echo "CertBot is gedownload en ingesteld"
+fi;
+
+echo "Wil je nu de bijpassende Firewall configuratie laden?" ja/nee
+if [ "$input" == "nee" ];
+then echo "Sluit de console"
+fi;
+
+if [ "$input" == "ja" ];
+then
+echo "De configuratie wordt geladen"
+sudo apt-get install iptables-persistent
+sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+sudo nextcloud.enable-https lets-encrypt
+sudo nextcloud.enable-https self-signed
+fi;
